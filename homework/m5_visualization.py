@@ -29,7 +29,19 @@ def green_bar_category():
     提示：sns.countplot 或 value_counts().plot.bar()
     """
     # TODO: 你的程式碼
-    pass
+    df = _load_data()
+
+    fig, ax = plt.subplots(figsize=(8, 4))
+    
+    sns.countplot(data=df, x="category", ax=ax)
+
+    ax.set_title("Order Count by Category")
+    ax.set_xlabel("Category")
+    ax.set_ylabel("Order Count")
+
+    fig.tight_layout()
+    
+    return fig
 
 
 def green_hist_amount():
@@ -39,7 +51,19 @@ def green_hist_amount():
     提示：sns.histplot(bins=20) 或 plt.hist()
     """
     # TODO: 你的程式碼
-    pass
+    df = _load_data()
+    
+    fig, ax = plt.subplots(figsize=(8, 4))
+
+    sns.histplot(data=df, x="amount", bins=20, ax=ax)
+
+    ax.set_title("Distribution of Order Amount")
+    ax.set_xlabel("Amount")
+    ax.set_ylabel("Count")
+
+    fig.tight_layout()
+    
+    return fig
 
 
 def green_set_labels():
@@ -51,7 +75,23 @@ def green_set_labels():
     回傳 matplotlib Figure 物件
     """
     # TODO: 你的程式碼
-    pass
+    fig, ax = plt.subplots()
+    
+    brands = ["Samsung", "Apple", "Xiaomi", "OPPO", "vivo", "Others"]
+    market_share = [22, 20, 11, 10, 7, 29]
+
+    ax.bar(brands, market_share)
+    ax.set_title("Global Smartphones Brand Market Share")
+    ax.set_xlabel("Brand")
+    ax.set_ylabel("Market Share (%)")
+    ax.set_ylim(0, 35)
+    
+    for i, value in enumerate(market_share):
+        ax.text(i, value + 0.5, str(value) + "%", ha="center")
+
+    fig.tight_layout()
+
+    return fig
 
 
 # ============================================================
@@ -68,7 +108,26 @@ def yellow_line_region_trend():
     提示：分別 groupby 再 plot，或用 sns.lineplot(hue='region')
     """
     # TODO: 你的程式碼
-    pass
+    df = _load_data()
+    
+    df = df[df["region"].isin(["North", "South"])].copy()
+    df["month"] = df["order_date"].dt.to_period("M").dt.to_timestamp()
+
+    monthly = df.groupby(["month", "region"])["amount"].sum().reset_index()
+
+    fig, ax = plt.subplots(figsize=(10, 5))
+
+    sns.lineplot(data=monthly, x="month", y="amount", hue="region", marker="o", ax=ax)
+
+    ax.set_title("Monthly Revenue Trend: North vs South")
+    ax.set_xlabel("Month")
+    ax.set_ylabel("Total Revenue")
+    ax.legend(title="Region")
+
+    fig.autofmt_xdate()
+    fig.tight_layout()
+
+    return fig
 
 
 def yellow_box_vip():
@@ -78,7 +137,19 @@ def yellow_box_vip():
     提示：sns.boxplot(x='vip_level', y='amount', data=df)
     """
     # TODO: 你的程式碼
-    pass
+    df = _load_data()
+
+    fig, ax = plt.subplots(figsize=(8, 4))
+
+    sns.boxplot(data=df, x="vip_level", y="amount", ax=ax)
+
+    ax.set_title("Order Amount Distribution by VIP Level")
+    ax.set_xlabel("VIP Level")
+    ax.set_ylabel("Order Amount")
+
+    fig.tight_layout()
+
+    return fig
 
 
 def yellow_scatter_price_amount():
@@ -88,7 +159,19 @@ def yellow_scatter_price_amount():
     提示：plt.scatter() 或 sns.scatterplot()
     """
     # TODO: 你的程式碼
-    pass
+    df = _load_data()
+    
+    fig, ax = plt.subplots(figsize=(8, 4))
+
+    sns.scatterplot(data=df, x="unit_price", y="amount", ax=ax)
+    
+    ax.set_title("Unit Price vs Order Amount")
+    ax.set_xlabel("Unit Price")
+    ax.set_ylabel("Order Amount")
+
+    fig.tight_layout()
+
+    return fig
 
 
 # ============================================================
@@ -107,4 +190,49 @@ def red_category_dashboard(category="Electronics"):
     提示：fig, axes = plt.subplots(2, 2, figsize=(14, 10))
     """
     # TODO: 你的程式碼
-    pass
+    df = _load_data()
+    
+    sub = df[df["category"] == category].copy()
+    sub["month"] = sub["order_date"].dt.to_period("M").dt.to_timestamp()
+
+    fig, ax = plt.subplots(2, 2, figsize=(14, 10))
+
+    # 1. 左上：月營收趨勢 (折線圖)
+    monthly = sub.groupby("month")["amount"].sum().reset_index()
+    
+    sns.lineplot(data=monthly, x="month", y="amount", ax=ax[0, 0])
+
+    ax[0, 0].set_title(f"{category} Monthly Revenue Trend")
+    ax[0, 0].set_xlabel("Month")
+    ax[0, 0].set_ylabel("Revenue")
+
+    # 2. 右上：各地區營收 (長條圖)
+    region_sales = sub.groupby("region")["amount"].sum().reset_index()
+    
+    sns.barplot(data=region_sales, x="region", y="amount", ax=ax[0, 1])
+
+    ax[0, 1].set_title(f"{category} Revenue by Region")
+    ax[0, 1].set_xlabel("Region")
+    ax[0, 1].set_ylabel("Revenue")
+
+    # 3. 左下：Top 5 商品營收 (水平長條圖)
+    top_products = sub.groupby("product_name")["amount"].sum().sort_values(ascending=False).head(5).reset_index()
+    
+    sns.barplot(data=top_products, x="amount", y="product_name", ax=ax[1, 0])
+
+    ax[1, 0].set_title(f"{category} Top 5 Products by Revenue")
+    ax[1, 0].set_xlabel("Revenue")
+    ax[1, 0].set_ylabel("Product Name")
+
+    # 4. 右下：訂單金額分佈 (直方圖)
+    sns.histplot(data=sub, x="amount", bins=20, ax=ax[1, 1])
+
+    ax[1, 1].set_title(f"{category} Order Amount Distribution")
+    ax[1, 1].set_xlabel("Order Amount")
+    ax[1, 1].set_ylabel("Count")
+
+    fig.suptitle(f"Category Dashboard: {category}", fontsize=16)
+    fig.autofmt_xdate()
+    fig.tight_layout()
+
+    return fig

@@ -27,7 +27,10 @@ def green_avg_by_month():
     提示：df['order_date'].dt.month
     """
     # TODO: 你的程式碼
-    pass
+    df = _load_data()
+    month = df["order_date"].dt.month
+
+    return df.groupby(month)["amount"].mean().round(1)
 
 
 def green_top3_dates():
@@ -37,7 +40,10 @@ def green_top3_dates():
     提示：value_counts().head(3)
     """
     # TODO: 你的程式碼
-    pass
+    df = _load_data()
+    top3 = df["order_date"].dt.date.value_counts().head(3)
+
+    return top3
 
 
 def green_date_range():
@@ -46,7 +52,11 @@ def green_date_range():
     格式為 pandas Timestamp
     """
     # TODO: 你的程式碼
-    pass
+    df = _load_data()
+    earliest = df["order_date"].min()
+    latest = df["order_date"].max()
+
+    return (earliest, latest)
 
 
 # ============================================================
@@ -60,7 +70,10 @@ def yellow_monthly_revenue():
     提示：set_index('order_date').resample('ME')['amount'].sum()
     """
     # TODO: 你的程式碼
-    pass
+    df = _load_data()
+    monthly = df.set_index("order_date").resample("ME")["amount"].sum()
+
+    return monthly
 
 
 def yellow_rolling_avg(monthly_revenue):
@@ -71,7 +84,7 @@ def yellow_rolling_avg(monthly_revenue):
     提示：.rolling(window=3).mean()
     """
     # TODO: 你的程式碼
-    pass
+    return monthly_revenue.rolling(window=3).mean()
 
 
 def yellow_category_median(df):
@@ -81,7 +94,7 @@ def yellow_category_median(df):
     提示：groupby + median + sort_values
     """
     # TODO: 你的程式碼
-    pass
+    return df.groupby("category")["amount"].median().sort_values(ascending=False)
 
 
 # ============================================================
@@ -101,4 +114,15 @@ def red_monthly_report():
     提示：resample + agg + pct_change
     """
     # TODO: 你的程式碼
-    pass
+    df = _load_data()
+
+    monthly = df.set_index("order_date").resample("ME").agg(
+        order_count=("order_id", "count"),
+        revenue=("amount", "sum"),
+        active_customers=("customer_id", "nunique")
+        )
+    
+    monthly["avg_order_value"] = monthly["revenue"] / monthly["order_count"]
+    monthly["revenue_growth"] = monthly["revenue"].pct_change()
+
+    return monthly
